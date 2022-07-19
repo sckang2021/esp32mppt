@@ -7,6 +7,7 @@
 
 PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平台 https://oshwhub.com/gggggg/esp32-1kw-mppt_copy
 
+本项目对应立创EDA工程文件：https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226
 
 本项目修改为2颗INA226方案，输入和输出的电压电流都能监测到
 
