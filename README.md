@@ -17,7 +17,9 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 #### 软件架构
 基于ESP32的MPPT充电系统
+
 远程采集使用blinker，界面在程序目录中，复制到blinker的界面配置即可
+
 ![输入图片说明](blinker_ui.jpg)
 
 
