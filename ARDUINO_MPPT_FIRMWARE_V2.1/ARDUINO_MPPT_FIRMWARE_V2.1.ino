@@ -1,0 +1,637 @@
+/*  PROJECT FUGU FIRMWARE V1.10  (DIY 1kW Open Source MPPT Solar Charge Controller)
+    By: TechBuilder (Angelo Casimiro)
+    FIRMWARE STATUS: Verified Stable Build Version
+    (Contact me for the experimental beta versions)
+    -----------------------------------------------------------------------------------------------------------
+    DATE CREATED:  02/07/2021
+    DATE MODIFIED: 30/08/2021
+    -----------------------------------------------------------------------------------------------------------
+    CONTACTS:
+    GitHub - www.github.com/AngeloCasi (New firmware releases will only be available on GitHub Link)
+    Email - casithebuilder@gmail.com
+    YouTube - www.youtube.com/TechBuilder
+    Facebook - www.facebook.com/AngeloCasii
+    -----------------------------------------------------------------------------------------------------------
+    PROGRAM FEATURES:
+    - MPPT Perturbed Algorithm With CC-CV
+    - WiFi & Bluetooth BLE Blynk Phone App Telemetry
+    - Selectable Charger/PSU Mode (can operate as a programmable buck converter)
+    - Dual Core ESP32 Unlocked (using xTaskCreatePinnedToCore(); )
+    - Precision ADC Tracking Auto ADS1115/ADS1015 Detection (16bit/12bit I2C ADC)
+    - Automatic ACS712-30A Current Sensor Calibration
+    - Equipped With Battery Disconnect & Input Disconnect Recovery Protection Protocol
+    - LCD Menu Interface (with settings & 4 display layouts)
+    - Flash Memory (non-volatile settings save function)
+    - Settable PWM Resolution (8bit-16bit)
+    - Settable PWM Switching Frequency (1.2kHz - 312kHz)
+    -----------------------------------------------------------------------------------------------------------
+    PROGRAM INSTRUCTIONS:
+    1.) Watch YouTube video tutorial first before using
+    2.) Install the required Arduino libraries for the ICs
+    3.) Select Tools > ESP32 Dev Board Board
+    4.) Do not modify code unless you know what you are doing
+    5.) The MPPT's synchronous buck converter topology is code dependent, messing with the algorithm
+        and safety protection protocols can be extremely dangerous especially when dealing with HVDC.
+    6.) Install Blynk Legacy to access the phone app telemetry feature
+    7.) Input the Blynk authentication in this program token sent by Blynk to your email after registration
+    8.) Input WiFi SSID and password in this program
+    9.) When using WiFi only mode, change "disableFlashAutoLoad = 0" to = 1 (LCD and buttons not installed)
+        this prevents the MPPT unit to load the Flash Memory saved settings and will load the Arduino variable
+        declarations set below instead
+    -----------------------------------------------------------------------------------------------------------
+    GOOGLE DRIVE PROJECT LINK: coming soon
+    INSTRUCTABLE TUTORIAL LINK: coming soon
+    YOUTUBE TUTORIAL LINK: www.youtube.com/watch?v=ShXNJM6uHLM
+    GITHUB UPDATED FUGU FIRMWARE LINK: github.com/AngeloCasi/FUGU-ARDUINO-MPPT-FIRMWARE
+    -----------------------------------------------------------------------------------------------------------
+    ACTIVE CHIPS USED IN FIRMWARE:
+    - ESP32 WROOM32
+    - ADS1115/ADS1015 I2C ADC
+    - ACS712-30A Current Sensor IC
+    - IR2104 MOSFET Driver
+    - CH340C USB TO UART IC
+    - 16X2 I2C Character LCD
+
+    OTHER CHIPS USED IN PROJECT:
+    - XL7005A 80V 0.4A Buck Regulator (2x)
+    - AMS1115-3.3 LDO Linear Regulator
+    - AMS1115-5.0 LDO Linear Regulator
+    - CSD19505 N-ch MOSFETS (3x)
+    - B1212 DC-DC Isolated Converter
+    - SS310 Diodes
+*/
+//================================ MPPT FIRMWARE LCD MENU INFO =====================================//
+// The lines below are for the Firmware Version info displayed on the MPPT's LCD Menu Interface     //
+//==================================================================================================//
+String
+firmwareInfo      = "V2.10",
+firmwareDate      = "23/06/2022",
+firmwareContactR1 = "www.youtube.com/",
+firmwareContactR2 = "TechBuilder     ";
+
+//====================== ARDUINO LIBRARIES (ESP32 Compatible Libraries) ============================//
+// You will have to download and install the following libraries below in order to program the MPPT //
+// unit. Visit TechBuilder's YouTube channel for the "MPPT" tutorial.                               //
+//============================================================================================= ====//
+#include <EEPROM.h>                 //SYSTEM PARAMETER  - EEPROM Library (By: Arduino)
+#include <Wire.h>                   //SYSTEM PARAMETER  - WIRE Library (By: Arduino)
+#include <SPI.h>                    //SYSTEM PARAMETER  - SPI Library (By: Arduino)
+#include <WiFi.h>                   //SYSTEM PARAMETER  - WiFi Library (By: Arduino)
+#include <WiFiClient.h>             //SYSTEM PARAMETER  - WiFi Library (By: Arduino)
+//#include <BlynkSimpleEsp32.h>       //SYSTEM PARAMETER  - Blynk WiFi Library For Phone App
+#define BLINKER_WIFI
+#define BLINKER_ALIGENIE_OUTLET
+#define BLINKER_WITHOUT_SSL
+#define BLINKER_ALIGENIE_SENSOR
+#include <Blinker.h>				//#define BLINKER_ESP_SMARTCONFIG
+#include <LiquidCrystal_I2C.h>      //系统参数 - ESP32 LCD 兼容库（作者：Robojax）
+#include <ArduinoOTA.h>
+//#include <Adafruit_ADS1X15.h>       //SYSTEM PARAMETER  - ADS1115/ADS1015 ADC Library (By: Adafruit)
+#include <INA226.h>
+LiquidCrystal_I2C lcd(0x27, 20, 4); //系统参数 - 配置 LCD RowCol 大小和 I2C 地址
+TaskHandle_t Core2;                 //SYSTEM PARAMETER  - Used for the ESP32 dual core operation
+//Adafruit_ADS1015 ads;               //SYSTEM PARAMETER  - ADS1015 ADC Library (By: Adafruit) Kindly delete this line if you are using ADS1115
+//Adafruit_ADS1115 ads;             //SYSTEM PARAMETER  - ADS1115 ADC Library (By: Adafruit) Kindly uncomment this if you are using ADS1115
+INA226 ina1;
+INA226 ina2;
+#include <time.h>
+#define timezone 8
+
+BlinkerNumber Num1("num-9y2");
+BlinkerNumber Num2("num-m2k");
+BlinkerNumber Num3("num-5up");
+BlinkerNumber Num4("num-ahb");
+BlinkerNumber Num5("num-l24");
+BlinkerNumber Num6("num-3bm");
+BlinkerNumber Num7("num-rgu");
+BlinkerNumber Num8("num-ao5");
+BlinkerNumber Num9("num-ycz");
+
+BlinkerButton Button1("btn-e6n");
+BlinkerButton Button2("btn-e3t");
+BlinkerButton Button3("btn-ogw");
+BlinkerButton Button4("btn-q4l");
+
+
+//====================================== USER PARAMETERS ===========================================//
+//下面的参数是没有MPPT充电器设置时使用的默认参数 //
+//通过 LCD 菜单界面或手机 WiFi 应用程序设置或保存。这里的一些参数//
+//将允许您覆盖或解锁高级用户的功能（不在 LCD 菜单上的设置）//
+//==================================================================================================//
+#define backflow_MOSFET 27          //SYSTEM PARAMETER - Backflow MOSFET
+#define buck_IN         33          //SYSTEM PARAMETER - Buck MOSFET Driver PWM Pin
+#define buck_EN         32          //SYSTEM PARAMETER - Buck MOSFET Driver Enable Pin
+#define LED             2           //SYSTEM PARAMETER - LED Indicator GPIO Pin
+#define FAN             16          //SYSTEM PARAMETER - Fan GPIO Pin
+//#define ADC_ALERT     35          //SYSTEM PARAMETER - ADC_ALERT GPIO Pin
+#define INA1_ALERT      35          //SYSTEM PARAMETER - INA226 Alert GPIO Pin
+#define INA2_ALERT      34          //SYSTEM PARAMETER - INA226 Alert GPIO Pin
+#define TempSensor      39          //SYSTEM PARAMETER - Temperature Sensor GPIO Pin
+#define buttonLeft      18          //SYSTEM PARAMETER - 
+#define buttonRight     19          //SYSTEM PARAMETER -
+#define buttonBack      17          //SYSTEM PARAMETER - 
+#define buttonSelect    23          //SYSTEM PARAMETER -
+
+#define eeprom_size 4096
+
+#define MPPT_Mode_add           2448          // charging mode setting
+#define voltageBatteryMax_add   2449          // Max Battery Voltage (whole)
+#define voltageBatteryMax2_add  2450          // Max Battery Voltage (decimal)
+#define voltageBatteryMin_add   2451          // Min Battery Voltage (whole)
+#define voltageBatteryMin2_add  2452          // Min Battery Voltage (decimal)
+#define currentCharging_add     2453          // Charging Current (whole)
+#define currentCharging2_add    2454          // Charging Current (decimal)
+#define enableFan_add           2455          // Fan Enable (Bool)
+#define temperatureFan_add      2456          // Fan Temp (Integer)
+#define temperatureMax_add      2457          // Shutdown Temp (Integer)
+#define enableWiFi_add          2458          // Enable WiFi (Boolean)
+#define flashMemLoad_add        2459          // Enable autoload (on by default)
+#define output_Mode_add         2460          // Charger/PSU Mode Selection (1 = Charger Mode)
+#define backlightSleepMode_add  2461          // LCD backlight sleep timer (default: 0 = never)
+
+//========================================= WiFi SSID ==============================================//
+// This MPPT firmware uses the Blynk phone app and arduino library for controls and data telemetry  //
+// Fill in your WiFi SSID and password. You will also have to get your own authentication token     //
+// from email after registering from the Blynk platform.                                            //
+//==================================================================================================//
+char
+auth[] = "InputBlynkAuthenticationToken",   //   USER PARAMETER - Input Blynk Authentication Token (From email after registration)
+ssid[] = "",                   //   USER PARAMETER - Enter Your WiFi SSID
+pass[] = "";               //   USER PARAMETER - Enter Your WiFi Password
+const char *blinker_id = "";	//Blinker ID
+//====================================== USER PARAMETERS ==========================================//
+//下面的参数是没有MPPT充电器设置时使用的默认参数 //
+//通过 LCD 菜单界面或手机 WiFi 应用程序设置或保存。这里的一些参数//
+//将允许您覆盖或解锁高级用户的功能（不在 LCD 菜单上的设置）//
+//=================================================================================================//
+bool
+MPPT_Mode               = 1,           //   USER PARAMETER - 启用 MPPT 算法，当禁用充电器时使用 CC-CV 算法
+output_Mode             = 1,           //   USER PARAMETER - 0 = PSU 模式, 1 = 充电器模式
+disableFlashAutoLoad    = 0,           //   USER PARAMETER - 强制 MPPT 不使用闪存保存的设置，启用此“1”默认为已编程的固件设置
+enablePPWM              = 1,           //   USER PARAMETER - 启用预测 PWM，这加快了调节速度（仅适用于电池充电应用）
+enableWiFi              = 1,           //   USER PARAMETER - 启用 WiFi 连接
+enableFan               = 1,           //   USER PARAMETER - 启用冷却风扇
+enableBluetooth         = 1,           //   USER PARAMETER - 启用蓝牙连
+enableLCD               = 1,           //   USER PARAMETER - 启用 接LCD 显示
+enableLCDBacklight      = 1,           //   USER PARAMETER - 启用 LCD 显示器的背光
+overrideFan             = 0,           //   USER PARAMETER - 风扇始终开启
+enableDynamicCooling    = 0;           //   USER PARAMETER - 启用 PWM 冷却控制 
+int
+serialTelemMode         = 1,           //  USER PARAMETER - 选择串行遥测数据馈送（0 - 禁用串行，1 - 显示所有数据，2 - 显示基本，3 - 仅数字）
+pwmResolution           = 11,          //  USER PARAMETER - PWM 位分辨率 
+pwmFrequency            = 39000,       //  USER PARAMETER - PWM 开关频率 - Hz（用于降压）
+temperatureFan          = 60,          //  USER PARAMETER - 风扇开启的温度阈值
+temperatureMax          = 90,          //  USER PARAMETER - 过热，超过时系统关闭（摄氏度）
+telemCounterReset       = 0,           //  USER PARAMETER - 每隔一次重置 Telem 数据（0 = 从不，1 = 日，2 = 周，3 = 月，4 = 年）
+errorTimeLimit          = 1000,        //  USER PARAMETER - 重置错误计数器的时间间隔（毫秒）
+errorCountLimit         = 5,           //  USER PARAMETER - 最大错误数 
+millisRoutineInterval   = 250,         //  USER PARAMETER - 例程函数的时间间隔刷新率 (ms)
+millisSerialInterval    = 5,           //  USER PARAMETER - USB 串行数据馈送的时间间隔刷新率 (ms)
+millisLCDInterval       = 1000,        //  USER PARAMETER - LCD 显示器的时间间隔刷新率 (ms)
+millisWiFiInterval      = 1000,        //  USER PARAMETER - WiFi 遥测的时间间隔刷新率 (ms)
+millisLCDBackLInterval  = 1000,        //  USER PARAMETER - 用户参数 - WiFi 遥测的时间间隔刷新率 (ms)
+backlightSleepMode      = 2,           //  USER PARAMETER - - 0 = 从不, 1 = 10 秒, 2 = 5 分钟, 3 = 1 小时, 4 = 6 小时, 5 = 12 小时, 6 = 1 天, 7 = 3 天, 8 = 1 周, 9 = 1个月
+baudRate                = 500000;      //  用户参数 - USB 串行波特率 (bps)
+
+float
+voltageBatteryMax       = 12.6000,     //   USER PARAMETER - 最大电池充电电压（输出 V）
+voltageBatteryMin       = 3.0000,     //   USER PARAMETER - 最小电池充电电压（输出 V）
+currentCharging         = 1.0000,     //   USER PARAMETER - 最大充电电流（A - 输出）
+electricalPrice         = 0.6000;      //   USER PARAMETER - 每千瓦时的输入电价
+
+
+//================================== CALIBRATION PARAMETERS =======================================//
+//可以调整以下参数以设计您自己的 MPPT 充电控制器。只修改 //
+//如果你知道你在做什么，下面的值。以下值已针对 // 进行了预校准
+// TechBuilder (Angelo S. Casimiro) 设计的 MPPT 充电控制器 //                        //
+//=================================================================================================//
+const bool
+ADS1015_Mode            = 1;          //  CALIB PARAMETER - Use 1 for ADS1015 ADC model use 0 for ADS1115 ADC model
+const int
+ADC_GainSelect          = 2,          //  校准参数 - ADC 增益选择 (0→±6.144V 3mV/bit, 1→±4.096V 2mV/bit, 2→±2.048V 1mV/bit)
+avgCountVS              = 3,          //  校准参数 - 电压传感器平均采样计数（推荐：3）
+avgCountCS              = 4,          //  校准参数 - 电流传感器平均采样计数（推荐：4）
+avgCountTS              = 500;        //  校准参数 - 温度传感器平均采样计数
+float
+inVoltageDivRatio       = 2.9784,     //  校准参数 - 输入分压器传感器比率（更改此值以校准电压传感器）
+outVoltageDivRatio      = 2.8275,     //  校准参数 - 输出分压器传感器比率（更改此值以校准电压传感器）
+vOutSystemMax           = 80.0000,    //  校准参数 - 最大输入电压
+cOutSystemMax           = 50.0000,    //  校准参数 - 最大输出电压
+ntcResistance           = 10000.00,   //  校准参数 - NTC 温度传感器的电阻。如果您使用 10k NTC，请更改为 10000.00
+voltageDropout          = 1.0000,     //  校准参数 - 降压稳压器的压降电压（由于最大占空比限制而存在 DOV）
+voltageBatteryThresh    = 1.5000,     //  校准参数 - 达到此电压时断电（输出 V）
+currentInAbsolute       = 31.0000,    //  校准参数 - 系统可以处理的最大输入电流（A - 输入）
+currentOutAbsolute      = 50.0000,    //  校准参数 - 系统可以处理的最大输出电流（A - 输入）
+PPWM_margin             = 99.5000,    //  校准参数 - 预测 PWM 的最小工作占空比 (%)
+PWM_MaxDC               = 97.0000,    //  校准参数 - 最大工作占空比 (%) 90%-97% 是好的
+efficiencyRate          = 1.0000,     //  校准参数 - 理论降压效率（十进制百分比）
+currentMidPoint         = 2.5250,     //  校准参数 - 电流传感器中点 (V)
+currentSens             = 0.0000,     //  校准参数 - 电流传感器灵敏度 (V/A)
+currentSensV            = 0.0330,     //  校准参数 - 电流传感器灵敏度 (mV/A)
+vInSystemMin            = 8.000;      //  校准参数 - 系统识别最低电压
+
+//===================================== SYSTEM PARAMETERS =========================================//
+//不要更改本节中的参数值。下面的值是系统使用的变量 //
+//进程。更改值可能会损坏 MPPT 硬件。请保持原样！然而， //
+//您可以访问这些变量来获取您的模组所需的数据。//
+//=================================================================================================//
+bool
+buckEnable            = 0,           // SYSTEM PARAMETER - Buck Enable Status
+fanStatus             = 0,           // SYSTEM PARAMETER - Fan activity status (1 = On, 0 = Off)
+bypassEnable          = 0,           // SYSTEM PARAMETER -
+chargingPause         = 0,           // SYSTEM PARAMETER -
+lowPowerMode          = 0,           // SYSTEM PARAMETER -
+buttonRightStatus     = 0,           // SYSTEM PARAMETER -
+buttonLeftStatus      = 0,           // SYSTEM PARAMETER -
+buttonBackStatus      = 0,           // SYSTEM PARAMETER -
+buttonSelectStatus    = 0,           // SYSTEM PARAMETER -
+buttonRightCommand    = 0,           // SYSTEM PARAMETER -
+buttonLeftCommand     = 0,           // SYSTEM PARAMETER -
+buttonBackCommand     = 0,           // SYSTEM PARAMETER -
+buttonSelectCommand   = 0,           // SYSTEM PARAMETER -
+settingMode           = 0,           // SYSTEM PARAMETER -
+setMenuPage           = 0,           // SYSTEM PARAMETER -
+boolTemp              = 0,           // SYSTEM PARAMETER -
+flashMemLoad          = 0,           // SYSTEM PARAMETER -
+confirmationMenu      = 0,           // SYSTEM PARAMETER -
+WIFI                  = 0,           // SYSTEM PARAMETER -
+BNC                   = 0,           // SYSTEM PARAMETER -
+REC                   = 0,           // SYSTEM PARAMETER -
+FLV                   = 0,           // SYSTEM PARAMETER -
+IUV                   = 0,           // SYSTEM PARAMETER -
+IOV                   = 0,           // SYSTEM PARAMETER -
+IOC                   = 0,           // SYSTEM PARAMETER -
+OUV                   = 0,           // SYSTEM PARAMETER -
+OOV                   = 0,           // SYSTEM PARAMETER -
+OOC                   = 0,           // SYSTEM PARAMETER -
+OTE                   = 0;           // SYSTEM PARAMETER -
+int
+inputSource           = 0,           // SYSTEM PARAMETER - 0 = MPPT 没有电源，1 = MPPT 使用太阳能作为电源，2 = MPPT 使用电池作为电源
+avgStoreTS            = 0,           // SYSTEM PARAMETER - 温度传感器使用非侵入式平均，这是用于平均平均的累加器
+temperature           = 0,           // SYSTEM PARAMETER -
+sampleStoreTS         = 0,           // SYSTEM PARAMETER - TS AVG 第 n 个样本
+pwmMax                = 0,           // SYSTEM PARAMETER -
+pwmMaxLimited         = 0,           // SYSTEM PARAMETER -
+PWM                   = 0,           // SYSTEM PARAMETER -
+PPWM                  = 0,           // SYSTEM PARAMETER -
+pwmChannel            = 0,           // SYSTEM PARAMETER -
+batteryPercent        = 0,           // SYSTEM PARAMETER -
+errorCount            = 0,           // SYSTEM PARAMETER -
+menuPage              = 0,           // SYSTEM PARAMETER -
+subMenuPage           = 0,           // SYSTEM PARAMETER -
+ERR                   = 0,           // SYSTEM PARAMETER -
+conv1                 = 0,           // SYSTEM PARAMETER -
+conv2                 = 0,           // SYSTEM PARAMETER -
+intTemp               = 0;           // SYSTEM PARAMETER -
+float
+VSI                   = 0.0000,      // SYSTEM PARAMETER - 原始输入电压传感器 ADC 电压
+VSO                   = 0.0000,      // SYSTEM PARAMETER - 原始输出电压传感器 ADC 电压
+CSI                   = 0.0000,      // SYSTEM PARAMETER - 原始电流传感器 ADC 电压
+CSO                   = 0.0000,      // SYSTEM PARAMETER - Raw current sensor ADC voltage
+CSI_converted         = 0.0000,      // SYSTEM PARAMETER - 实际电流传感器 ADC 电压
+CSO_converted         = 0.0000,      // SYSTEM PARAMETER - Actual current sensor ADC voltage
+TS                    = 0.0000,      // SYSTEM PARAMETER - 原始温度传感器 ADC 值
+powerInput            = 0.0000,      // SYSTEM PARAMETER - 输入功率（太阳能）以瓦特为单位
+powerInputPrev        = 0.0000,      // SYSTEM PARAMETER - 先前存储的 MPPT 算法的输入功率变量（瓦特）
+powerOutput           = 0.0000,      // SYSTEM PARAMETER - 输出功率（电池或充电功率，以瓦特为单位）
+energySavings         = 0.0000,      // SYSTEM PARAMETER - 法定货币（比索、美元、欧元等）的能源节约
+voltageInput          = 0.0000,      // SYSTEM PARAMETER - 输入电压（太阳能电压）
+voltageInputPrev      = 0.0000,      // SYSTEM PARAMETER - 先前存储的 MPPT 算法的输入电压变量
+voltageOutput         = 0.0000,      // SYSTEM PARAMETER - 输入电压（电池电压）
+currentInput          = 0.0000,      // SYSTEM PARAMETER - 输出功率（电池或充电电压）
+currentOutput         = 0.0000,      // SYSTEM PARAMETER - 输出电流（电池或充电电流，以安培为单位）
+TSlog                 = 0.0000,      // SYSTEM PARAMETER -  NTC 热敏电阻热感应代码的一部分
+ADC_BitReso           = 0.0000,      // SYSTEM PARAMETER - 系统检测 ADS1015/ADS1115 ADC 的适当位分辨率因子
+daysRunning           = 0.0000,      // SYSTEM PARAMETER - 存储 MPPT 设备自上次通电以来运行的总天数
+Wh                    = 0.0000,      // SYSTEM PARAMETER - 存储收集到的累积能量（瓦特小时）
+kWh                   = 0.0000,      // SYSTEM PARAMETER - 存储收集到的累积能量（千瓦时）
+MWh                   = 0.0000,      // SYSTEM PARAMETER - 存储收集到的累积能量（兆瓦时）
+loopTime              = 0.0000,      // SYSTEM PARAMETER -
+outputDeviation       = 0.0000,      // SYSTEM PARAMETER - 输出电压偏差 (%)
+buckEfficiency        = 0.0000,      // SYSTEM PARAMETER - 测量降压转换器功率转换效率（仅适用于我的双电流传感器版本）
+floatTemp             = 0.0000,
+vOutSystemMin         = 0.0000;     //  CALIB PARAMETER -
+unsigned long
+currentErrorMillis    = 0,           //SYSTEM PARAMETER -
+currentButtonMillis   = 0,           //SYSTEM PARAMETER -
+currentSerialMillis   = 0,           //SYSTEM PARAMETER -
+currentRoutineMillis  = 0,           //SYSTEM PARAMETER -
+currentLCDMillis      = 0,           //SYSTEM PARAMETER -
+currentLCDBackLMillis = 0,           //SYSTEM PARAMETER -
+currentWiFiMillis     = 0,           //SYSTEM PARAMETER -
+currentMenuSetMillis  = 0,           //SYSTEM PARAMETER -
+prevButtonMillis      = 0,           //SYSTEM PARAMETER -
+prevSerialMillis      = 0,           //SYSTEM PARAMETER -
+prevRoutineMillis     = 0,           //SYSTEM PARAMETER -
+prevErrorMillis       = 0,           //SYSTEM PARAMETER -
+prevWiFiMillis        = 0,           //SYSTEM PARAMETER -
+prevLCDMillis         = 0,           //SYSTEM PARAMETER -
+prevLCDBackLMillis    = 0,           //SYSTEM PARAMETER -
+timeOn                = 0,           //SYSTEM PARAMETER -
+loopTimeStart         = 0,           //SYSTEM PARAMETER - 用于循环循环秒表，记录循环开始时间
+loopTimeEnd           = 0,           //SYSTEM PARAMETER - 用于循环循环秒表，记录循环结束时间
+secondsElapsed        = 0;           //SYSTEM PARAMETER -
+
+//====================================== MAIN PROGRAM =============================================//
+// The codes below contain all the system processes for the MPPT firmware. Most of them are called //
+// from the 8 .ino tabs. The codes are too long, Arduino tabs helped me a lot in organizing them.  //
+// The firmware runs on two cores of the Arduino ESP32 as seen on the two separate pairs of void   //
+// setups and loops. The xTaskCreatePinnedToCore() freeRTOS function allows you to access the      //
+// unused ESP32 core through Arduino. Yes it does multicore processes simultaneously!              //
+//=================================================================================================//
+
+void dataRead(const String &data)
+{
+  BLINKER_LOG("Blinker readString: ", data);
+}
+
+void heartbeat()
+{
+  Num1.print(powerInput);
+  Num2.print(voltageInput);
+  Num3.print(currentInput);
+  Num4.print(batteryPercent);
+  Num5.print(voltageOutput);
+  Num6.print(currentOutput);
+  Num7.print(Wh/1000);
+  Num8.print(electricalPrice);
+  Num9.print(temperature);
+
+  if(buckEnable==1){Button1.print("off");}else{Button1.print("on");}
+  if(batteryPercent >= 99){Button2.print("off");}else{Button2.print("on");}
+  if(batteryPercent <= 10){Button3.print("off");}else{Button3.print("on");}
+  if(IUV == 0){Button4.print("off");}else{Button4.print("on");}
+
+}
+void dataStorage()
+{
+    Blinker.dataStorage("data-1", powerInput); //数据组件名，数据值
+    Blinker.dataStorage("data-2", voltageInput);
+    Blinker.dataStorage("data-3", currentInput);
+    Blinker.dataStorage("data-4", powerOutput);
+    Blinker.dataStorage("data-5", voltageOutput);
+    Blinker.dataStorage("data-6", currentOutput);
+}
+
+//================= CORE0: SETUP (DUAL CORE MODE) =====================//
+void coreTwo(void * pvParameters) {
+  setupWiFi();                                              //TAB#7 - WiFi Initialization
+  //================= CORE0: LOOP (DUAL CORE MODE) ======================//
+  while (1) {
+    Wireless_Telemetry();                                   //TAB#7 - Wireless telemetry (WiFi & Bluetooth)
+
+  }
+}
+//================== CORE1: SETUP (DUAL CORE MODE) ====================//
+void setup() {
+
+  //SERIAL INITIALIZATION
+  Serial.begin(baudRate);                                   //Set serial baud rate
+  Serial.println("> Serial Initialized");                   //Startup message
+  BLINKER_DEBUG.stream(Serial);
+
+  //GPIO PIN INITIALIZATION
+  pinMode(backflow_MOSFET, OUTPUT);
+  pinMode(buck_EN, OUTPUT);
+  pinMode(LED, OUTPUT);
+  pinMode(FAN, OUTPUT);
+  pinMode(TS, INPUT);
+  //pinMode(ADC_ALERT,INPUT);
+  pinMode(INA1_ALERT, INPUT);
+  pinMode(INA2_ALERT, INPUT);
+  pinMode(buttonLeft, INPUT);
+  pinMode(buttonRight, INPUT);
+  pinMode(buttonBack, INPUT);
+  pinMode(buttonSelect, INPUT);
+
+  //PWM INITIALIZATION
+  ledcSetup(pwmChannel, pwmFrequency, pwmResolution);        //Set PWM Parameters
+  ledcAttachPin(buck_IN, pwmChannel);                        //Set pin as PWM
+  ledcWrite(pwmChannel, PWM);                                //Write PWM value at startup (duty = 0)
+  pwmMax = pow(2, pwmResolution) - 1;                        //Get PWM Max Bit Ceiling
+  pwmMaxLimited = (PWM_MaxDC * pwmMax) / 100.000;            //Get maximum PWM Duty Cycle (pwm limiting protection)
+
+  //ADC INITIALIZATION
+  //ADC_SetGain();                                             //Sets ADC Gain & Range
+  //ads.begin();                                               //Initialize ADC
+  Serial.println("Initialize INA226 Slave1 0x40 A1 GND A0 GND");
+  Serial.println("-----------------------------------------------");
+
+  // Default INA226 address is 0x40
+  ina1.begin();
+
+  // Configure INA226
+  ina1.configure(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_588US, INA226_SHUNT_CONV_TIME_588US, INA226_MODE_SHUNT_BUS_CONT);
+
+  // Calibrate INA226. Rshunt = 0.01 ohm, Max excepted current = 4A
+  ina1.calibrate(0.002, 40);
+
+  // Display configuration
+  checkConfig(ina1);
+
+  Serial.println("-----------------------------------------------");
+
+  Serial.println("Initialize INA226 Slave2 0x41");
+  Serial.println("-----------------------------------------------");
+
+  // Default INA226 address is 0x40
+  ina2.begin(0x41);
+
+  // Configure INA226
+  ina2.configure(INA226_AVERAGES_4, INA226_BUS_CONV_TIME_588US, INA226_SHUNT_CONV_TIME_588US, INA226_MODE_SHUNT_BUS_CONT);
+
+  // Calibrate INA226. Rshunt = 0.01 ohm, Max excepted current = 4A
+  ina2.calibrate(0.002, 40);
+
+  // Display configuration
+  checkConfig(ina2);
+
+  Serial.println("-----------------------------------------------");
+
+  //GPIO INITIALIZATION
+  buck_Disable();
+
+  //ENABLE DUAL CORE MULTITASKING
+  xTaskCreatePinnedToCore(coreTwo, "coreTwo", 10000, NULL, 0, &Core2, 0);
+
+  //INITIALIZE AND LIOAD FLASH MEMORY DATA
+  EEPROM.begin(eeprom_size);
+  Serial.println("> FLASH MEMORY: STORAGE INITIALIZED");  //Startup message
+  initializeFlashAutoload();                              //Load stored settings from flash memory
+  Serial.println("> FLASH MEMORY: SAVED DATA LOADED");    //Startup message
+
+  //LCD INITIALIZATION
+  if (enableLCD == 1) {
+    lcd.begin(16, 2);
+    lcd.setBacklight(HIGH);
+    lcd.setCursor(0, 0);
+    lcd.print("MPPT INIT");
+    lcd.setCursor(0, 1);
+    lcd.print("FIRMWARE ");
+    lcd.print(firmwareInfo);
+    delay(1500);
+    lcd.clear();
+  }
+
+  uint32_t chipId = 0;
+  for (int i = 0; i < 17; i = i + 8) {
+    chipId |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
+  }
+  Serial.printf("Chip ID: %d\r\n", chipId);
+
+  Serial.printf("ESP32 Chip ID = %04X", (uint16_t)(ESP.getEfuseMac() >> 32)); //print High 2 bytes
+  Serial.printf("%08X\r\n", (uint32_t)ESP.getEfuseMac()); //print Low 4bytes.
+
+  Serial.printf("Chip model = %s Rev %d\r\n", ESP.getChipModel(), ESP.getChipRevision());
+  Serial.printf("This chip has %d cores CpuFreqMHz = %u\r\n", ESP.getChipCores(), ESP.getCpuFreqMHz());
+  Serial.printf("get Cycle Count = %u\r\n", ESP.getCycleCount());
+  Serial.printf("SDK version:%s\r\n", ESP.getSdkVersion());  //获取IDF版本
+
+  //获取片内内存  Internal RAM
+  Serial.printf("Total heap size = %u\t", ESP.getHeapSize());
+  Serial.printf("Available heap = %u\r\n", ESP.getFreeHeap());
+  Serial.printf("Lowest level of free heap since boot = %u\r\n", ESP.getMinFreeHeap());
+  Serial.printf("Largest block of heap that can be allocated at once = %u\r\n", ESP.getMaxAllocHeap());
+
+  //SPI RAM
+  Serial.printf("Total Psram size = %u\t", ESP.getPsramSize());
+  Serial.printf("Available Psram = %u\r\n", ESP.getFreePsram());
+  Serial.printf("Lowest level of free Psram since boot = %u\r\n", ESP.getMinFreePsram());
+  Serial.printf("Largest block of Psram that can be allocated at once = %u\r\n", ESP.getMinFreePsram());
+
+  byte mac[6];
+  WiFi.macAddress(mac);
+  printf("macAddress 0x%02X:0x%02X:0x%02X:0x%02X:0x%02X:0x%02X\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+  //以下是启动OTA，可以通过WiFi刷新固件
+  ArduinoOTA.setHostname("ESP32_MPPT");
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+  ArduinoOTA.onStart([]() {
+    String type;
+    if (ArduinoOTA.getCommand() == U_FLASH) {
+      type = "sketch";
+    } else { // U_SPIFFS
+      type = "filesystem";
+    }
+
+    // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+    Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) {
+      Serial.println("Auth Failed");
+    } else if (error == OTA_BEGIN_ERROR) {
+      Serial.println("Begin Failed");
+    } else if (error == OTA_CONNECT_ERROR) {
+      Serial.println("Connect Failed");
+    } else if (error == OTA_RECEIVE_ERROR) {
+      Serial.println("Receive Failed");
+    } else if (error == OTA_END_ERROR) {
+      Serial.println("End Failed");
+    }
+  });
+  ArduinoOTA.begin();
+  Serial.println("OTA Ready");
+  
+
+  //设置时间格式以及时间服务器的网址
+  configTime(timezone * 3600, 0, "pool.ntp.org", "time.nist.gov");
+  Serial.println("\nWaiting for time");
+  while (!time(nullptr)) {
+    Serial.print(".");
+    delay(1000);
+  }
+
+  //SETUP FINISHED
+  Serial.println("> MPPT HAS INITIALIZED");                //Startup message
+
+}
+unsigned long TenthSecondsSinceStart = 0;
+unsigned long LastMillis = 0;
+char DateTimeStr[20];
+
+void OnSecond()
+{
+  time_t now = time(nullptr); //获取当前时间
+
+  //转换成年月日的数字，可以更加自由的显示。
+  struct   tm* timenow;
+  timenow = localtime(&now);
+  unsigned char tempHour = timenow->tm_hour;
+  unsigned char tempMinute = timenow->tm_min;
+  unsigned char tempSecond = timenow->tm_sec;
+  unsigned char tempDay = timenow->tm_mday;
+  unsigned char tempMonth = timenow->tm_mon + 1;
+  unsigned int tempYear = timenow->tm_year + 1900;
+  unsigned char tempWeek = timenow->tm_wday;
+
+  //生成  年月日时分秒 字符串。
+  sprintf(DateTimeStr, "%d-%02d-%02d %02d:%02d:%02d"
+          , tempYear
+          , tempMonth
+          , tempDay
+          , tempHour
+          , tempMinute
+          , tempSecond
+         );
+
+}
+
+void OnTenthSecond()  // 100ms 十分之一秒
+{
+
+  if (TenthSecondsSinceStart % 3 == 0) //0.3S刷新数据，
+  {
+    //读取采样数据1
+
+    //voltageInput  = ina1.readBusVoltage()*(R1_VOLTAGE1+R2_VOLTAGE1)/R1_VOLTAGE1;
+    //voltageOutput = ina2.readBusVoltage()*(R1_VOLTAGE2+R2_VOLTAGE2)/R1_VOLTAGE2;
+
+    //读取采样数据2
+
+    //CSI_converted = ina1.readShuntCurrent();
+    //CSO_converted = ina2.readShuntCurrent();
+  }
+
+  if (TenthSecondsSinceStart % 10 == 0) //10次为1秒
+  {
+    OnSecond();
+  }
+}
+
+void TenthSecondsSinceStartTask() //100ms
+{
+  unsigned long CurrentMillis = millis();
+  if (abs(int(CurrentMillis - LastMillis)) > 100)
+  {
+    LastMillis = CurrentMillis;
+    TenthSecondsSinceStart++;
+    OnTenthSecond();
+  }
+}
+
+//================== CORE1: LOOP (DUAL CORE MODE) ======================//
+void loop() {
+  ArduinoOTA.handle();
+
+  TenthSecondsSinceStartTask();
+
+  Read_Sensors();         //TAB#2 - Sensor data measurement and computation
+  Device_Protection();    //TAB#3 - Fault detection algorithm
+  System_Processes();     //TAB#4 - Routine system processes
+  Charging_Algorithm();   //TAB#5 - Battery Charging Algorithm
+  Onboard_Telemetry();    //TAB#6 - Onboard telemetry (USB & Serial Telemetry)
+  LCD_Menu();             //TAB#8 - Low Power Algorithm
+}
