@@ -13,7 +13,16 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 
 #### 软件架构
-软件架构说明
+
+INA226的库名是：INA226Lib
+
+/*
+    INA226 Bi-directional Current/Power Monitor. Simple Example.
+    Read more: http://www.jarzebski.pl/arduino/czujniki-i-sensory/cyfrowy-czujnik-pradu-mocy-ina226.html
+    GIT: https://github.com/jarzebski/Arduino-INA226
+    Web: http://www.jarzebski.pl
+    (c) 2014 by Korneliusz Jarzebski
+*/
 
 
 #### 安装教程
