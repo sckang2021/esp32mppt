@@ -27,7 +27,9 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 #### 安装教程
 修改ARDUINO_MPPT_FIRMWARE_V2.1.ino文件中的wifi配置信息及blinkerid
 
-Liquid Crystal I2C LCD Library (By: Robojax) https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library
+Liquid Crystal I2C LCD Library (By: Robojax) 这个库不能用
+
+用LiquidCrystal_I2C By:Frank de Brabander的版本
 
 INA226的库名是：INA226Lib
 
