@@ -94,6 +94,31 @@ void resetVariables() {
   daysRunning    = 0;
   timeOn         = 0;
 }
+
+/*
+ * @description: 检测NTC温度 GND----|NTC |----|10k|—VCC
+ * @param {*}
+ * @return 摄氏度
+*/
+/*
+double GetNTCTemp(void) {
+    static uint32_t CoolTimer = 0;
+    if (millis() - CoolTimer > 1000){
+  if (sampleStoreTS <= avgCountTS) {                           //TEMPERATURE SENSOR - Lite Averaging
+    TS = TS + analogRead(TempSensor);
+    sampleStoreTS++;
+  } else {
+        double Ert = analogReadMilliVolts(TempSensor) / 1000.0;
+        double Rt = (Ert * ntcResistance) / (3.3 - Ert);
+        NTC_Temp = 1 / ((log(Rt / ntcResistance)) / (3950)+1 / (25 + 273.15)) - 273.15;
+        //重置冷却计时器
+        CoolTimer = millis();
+    }
+	}
+    return NTC_Temp;
+}
+*/
+
 void Read_Sensors() {
 
   /////////// TEMPERATURE SENSOR /////////////
@@ -107,7 +132,21 @@ void Read_Sensors() {
     sampleStoreTS = 0;
     TS = 0;
   }
-
+/*
+3.3= ADC/(Rb/(Ra+Rb))
+ADC=(Rb/(Ra+Rb))*3.3
+Rb/(Ra+Rb)=ADC/3.3
+ADC*(Ra+Rb)/3.3=Rb
+ADC*(Ra+Rb)=Rb*3.3
+ADC*Ra+ADC*Rb=Rb*3.3
+求上臂
+Ra=(Rb*3.3-ADC*Rb)/ADC
+Ra=Rb*(3.3-ADC)/ADC
+求下臂
+Rb*3.3-ADC*Rb=ADC*Ra
+Rb*(3.3-ADC)=ADC*Ra
+Rb=ADC*Ra/(3.3-ADC)
+*/
   /////////// VOLTAGE & CURRENT SENSORS /////////////
   VSI = 0.0000;      //Clear Previous Input Voltage
   VSO = 0.0000;      //Clear Previous Output Voltage
@@ -135,13 +174,12 @@ void Read_Sensors() {
  /*
   for (int i = 0; i < avgCountCS; i++) {
     CSI = CSI + ads.computeVolts(ads.readADC_SingleEnded(2));
-    CSI = CSI + ina1.readShuntCurrent();
-    CSO = CSO + ina2.readShuntCurrent();
   }
   CSI_converted = (CSI/avgCountCS)*1.3300;
   currentInput  = ((CSI_converted-currentMidPoint)*-1)/currentSensV;
-  CSI_converted = (CSI/avgCountCS);
-  CSO_converted = (CSO/avgCountCS);
+ */
+ /*
+ 运放采样取电流= 采样电压/(R*R3/R4)
  */
   CSI_converted = ina1.readShuntCurrent();
   CSO_converted = ina2.readShuntCurrent();
@@ -177,10 +215,11 @@ void Read_Sensors() {
 
   //POWER COMPUTATION - Through computation
   //powerInput      = voltageInput*currentInput;
-  powerInput      = ina1.readBusPower();
+  powerInput      = ina1.readBusPower() * inVoltageDivRatio;
   //powerOutput     = voltageInput*currentInput*efficiencyRate;
-  powerOutput     = ina2.readBusPower();
+  powerOutput     = ina2.readBusPower() * outVoltageDivRatio;
   outputDeviation = (voltageOutput / voltageBatteryMax) * 100.000;
+  buckEfficiency  = powerOutput/powerInput * 100.000;
 
   //STATE OF CHARGE - Battery Percentage
   batteryPercent  = ((voltageOutput - voltageBatteryMin) / (voltageBatteryMax - voltageBatteryMin)) * 101;
