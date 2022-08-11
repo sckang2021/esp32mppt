@@ -52,13 +52,13 @@ void Charging_Algorithm(){
       如果设定较小值，则无法发挥最大功率
       */
       if(MPPT_Mode==0){                                                              // CC-CV PSU 模式
-        if(PSUcurrentMax>=currentCharging || PSUcurrentMax==0.0000 || currentOutput<0.02){PSUcurrentMax = currentCharging;} //初始化psu输入最大电流
+        //if(PSUcurrentMax>=currentCharging || PSUcurrentMax==0.0000 || currentOutput<0.02){PSUcurrentMax = currentCharging;} //初始化psu输入最大电流
         
         if(currentOutput>currentCharging)     {PWM--;}                             //电流高于限定值 → 降低占空比
 		//psu模式和psu充电模式还是要区别一下，充电模式为了充电可以榨干输入源，psu模式则并不一定需要，所以暂时关闭此判断 20220811
         //if(currentOutput>PSUcurrentMax)       {PWM--;}                               //电流高于外部最大值 → 降低占空比
         else if(voltageOutput>voltageBatteryMax){PWM--;}                             //电压高于 → 降低占空比   
-        else if(voltageInput<voltageInputMax-1){PWM--;PSUcurrentMax=PSUcurrentMax-0.02;} //当带载输入电压与空载电压相差1v，降低占空比及降低额定电流以保证能获得外部电源最大电流20220806
+        //else if(voltageInput<voltageInputMax-1){PWM--;PSUcurrentMax=PSUcurrentMax-0.02;} //当带载输入电压与空载电压相差1v，降低占空比及降低额定电流以保证能获得外部电源最大电流20220806
         else if(voltageOutput<voltageBatteryMax){PWM++;}                             //当输出低于充电电压时增加占空比（仅用于 CC-CV 模式）
         else{}                                                                       //当达到设定的输出电压时什么都不做 
         PWM_Modulation();                                                            //将 PWM 信号设置为 Buck PWM GPIO
