@@ -32,10 +32,10 @@ void Charging_Algorithm(){
     if(REC==1){                                                                      // IUV RECOVERY - (仅对充电模式有效)
       REC=0;                                                                         //重置 IUV 恢复布尔标识符
       buck_Disable();                                                                //在 PPWM 初始化之前禁用降压
-      //lcd.setCursor(0,0);lcd.print("POWER SOURCE    ");                              //显示液晶信息
-      //lcd.setCursor(0,1);lcd.print("DETECTED        ");                              //显示液晶信息
+      lcd.setCursor(0,0);lcd.print("POWER SOURCE    ");                              //显示液晶信息
+      lcd.setCursor(0,1);lcd.print("DETECTED        ");                              //显示液晶信息
       //tft.fillScreen(TFT_BLACK);
-      tft.drawString("POWER SOURCE DETECTED", 10, 40, 3);
+      //tft.drawString("POWER SOURCE DETECTED", 10, 40, 3);
       Serial.println("> Solar Panel Detected");                                      //显示串口信息
       Serial.print("> Computing For Predictive PWM ");                               //显示串口信息
       for(int i = 0; i<40; i++){Serial.print(".");delay(30);}                        //For loop "loading... 效果
@@ -43,7 +43,7 @@ void Charging_Algorithm(){
       Read_Sensors();
       predictivePWM();
       PWM = PPWM;
-      //lcd.clear();
+      lcd.clear();
     }
     else{                                                                            //NO ERROR PRESENT - 继续电源转换
       /////////////////////// CC-CV BUCK PSU ALGORITHM ////////////////////////////// 
