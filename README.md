@@ -13,7 +13,10 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
  **高压端检测版本**  电压不要超过36V，否则可能损坏ina226
 
- **低压端检测版本**  待验证
+ **低压端检测版本**  已验证，不过低侧会讲esp32等耗电计入到输入端，程序部分需要自行修改 2_Read_Sensors.ino ，将
+`CSI_converted = ina1.readShuntCurrent();`
+修改为
+`CSI_converted = -ina1.readShuntCurrent();`
 
 
 #### 软件架构
