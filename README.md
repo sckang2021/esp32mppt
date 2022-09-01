@@ -30,7 +30,6 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 此版本提供bin直接烧录，省得各种配置劝退
 
-![输入图片说明](QQ%E6%88%AA%E5%9B%BE20220901153333.png)
 
 flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/support/download/other-tools](https://www.espressif.com/zh-hans/support/download/other-tools) ），选择esp32进行烧写
 
