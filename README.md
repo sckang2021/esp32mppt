@@ -9,6 +9,8 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 本项目对应立创EDA工程文件：https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226
 
+ **降压同步整流版本** 
+
 本项目修改为2颗INA226方案，输入和输出的电压电流都能监测到
 
  **高压端检测版本**  电压不要超过36V，否则可能损坏ina226
@@ -20,6 +22,15 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 修改为
 
 `CSI_converted = -ina1.readShuntCurrent();`
+
+
+ **升压/降压同步整流版本** 
+
+此版本提供bin直接烧录，省得各种配置劝退
+
+flash_download_tool工具（下载地址：https://www.espressif.com/zh-hans/support/download/other-tools），选择esp32进行烧写
+
+
 
 
 #### 软件架构
