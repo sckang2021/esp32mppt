@@ -11,6 +11,7 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 
 
+
  **【降压同步整流版本】** 
 
 本项目修改为2颗INA226方案，输入和输出的电压电流都能监测到
@@ -24,6 +25,7 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 修改为
 
 `CSI_converted = -ina1.readShuntCurrent();`
+
 
 
 
