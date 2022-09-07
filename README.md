@@ -37,7 +37,7 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 此版本提供bin直接烧录，省得各种配置劝退
 
-按途中打钩项选择，然后按boot+en进入download模式
+按图中打钩项选择，然后按boot+en进入download模式
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20220901155947.png)
 
