@@ -1,7 +1,7 @@
 # ESP32 MPPT
 
 #### 介绍
-基于ESP32的MPPT同步整流充电系统
+基于esp32-wroom-32的MPPT同步整流充电系统
 
 此项目基于https://www.instructables.com/DIY-1kW-MPPT-Solar-Charge-Controller/
 
