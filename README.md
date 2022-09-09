@@ -13,7 +13,7 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 
 
- **【降压同步整流版本】** 
+ **【降压同步整流版本HW5.01】** 
 
 本项目修改为2颗INA226方案，输入和输出的电压电流都能监测到
 
@@ -27,10 +27,11 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 `CSI_converted = -ina1.readShuntCurrent();`
 
+HW5.01的程序使用ARDUINO_MPPT_FIRMWARE_V2.1
 
 
-
- **【升压/降压同步整流版本】** 
+ **【升压/降压同步整流版本HW6.01】** 
+HW5.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_buck_boost/bin/HW6
 
 在降压版本的基础上，升压需要通过更换输入输出，外部开关来进行模式切换
 
