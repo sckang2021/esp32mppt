@@ -39,14 +39,14 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 此版本提供bin直接烧录，省得各种配置劝退
 
-按图中打钩项选择，然后按boot+en进入download模式
+1、按图中打钩项选择，然后按boot+en进入download模式
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20220901155947.png)
 
 flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/support/download/other-tools](https://www.espressif.com/zh-hans/support/download/other-tools) ），选择esp32进行烧写
 
 
-烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准
+2、烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准
 
 查看校准参数 CHKVD
 
@@ -59,7 +59,23 @@ flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/su
 用万用表测量实际输出电压，例如为16.22
 在串口发送界面输入：OUTVD16.22
 
+3、配网及blinker设置
+第一次配置，通过设置界面，找到配网菜单，点击配网，会自动开启"ESP32_MPPT"的热点
+使用手机wifi或电脑的wifi进行连接
+手机端会自动跳转访问设置页，电脑端找一下网关地址，浏览器访问网关地址即可进行设置
+如果已经配置过网络，则通过esp32的客户端地址访问
+
+![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105704.png)
+
+4、脱离串口的OTA固件升级（请仔细检查固件对应的硬件版本进行升级，如果升级失败只能通过串口重新烧录）
+OTA必须配网完成才能使用，可以通过浏览器访问 [http://ESP32_MPPT.local](http://) 或访问对应的客户端IP
+OTA的账号：admin，密码：ESPmppt
+
+![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105714.png)
+
+
 然后就可以愉快地使用了
+
 
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220901143819.jpg)
