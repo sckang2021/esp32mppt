@@ -35,6 +35,8 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
  **为了避免意外发生，请仔细检查接入及切换开关位置！！！** 
 
+ **_使用时将主板上的升降压开关切换至降压模式，在对应的端子上接入输入电源，开机_** 
+
 此版本提供bin直接烧录，省得各种配置劝退
 
 按图中打钩项选择，然后按boot+en进入download模式
@@ -42,6 +44,23 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20220901155947.png)
 
 flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/support/download/other-tools](https://www.espressif.com/zh-hans/support/download/other-tools) ），选择esp32进行烧写
+
+
+烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准
+
+查看校准参数 CHKVD
+
+校准输入电压 示例：INVD19.22
+用万用表测量实际输入电压，例如为19.22
+在串口发送界面输入：INVD19.22
+
+
+校准输出电压 示例：OUTVD16.22
+用万用表测量实际输出电压，例如为16.22
+在串口发送界面输入：OUTVD16.22
+
+然后就可以愉快地使用了
+
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220901143819.jpg)
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220901115046.jpg)
