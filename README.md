@@ -50,6 +50,8 @@ HW6.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_b
 
 flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/support/download/other-tools](https://www.espressif.com/zh-hans/support/download/other-tools) ），选择esp32进行烧写
 
+建议先烧录https://gitee.com/muyan3000/esp32-mppt/blob/master/esp32_buck_boost/bin/i2cdetect.bin，I2C检测程序，检查INA226的地址是否正确
+正常的TI INA226地址为0X40和0X41
 
 2、烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准
 
