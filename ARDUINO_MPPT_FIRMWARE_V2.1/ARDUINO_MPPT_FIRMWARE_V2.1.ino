@@ -84,7 +84,7 @@ firmwareContactR2 = "TechBuilder     ";
 #define BLINKER_WITHOUT_SSL
 #define BLINKER_ALIGENIE_SENSOR
 #include <Blinker.h>				//#define BLINKER_ESP_SMARTCONFIG
-#include <LiquidCrystal_I2C.h>      //系统参数 - ESP32 LCD 兼容库（作者：Robojax）
+#include <LiquidCrystal_I2C.h>      //系统参数 - ESP32 LCD 兼容库（作者：Frank de Brabander）
 #include <ArduinoOTA.h>
 //#include <Adafruit_ADS1X15.h>       //SYSTEM PARAMETER  - ADS1115/ADS1015 ADC Library (By: Adafruit)
 #include <INA226.h>
