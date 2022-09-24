@@ -21,7 +21,7 @@ HW5.01的程序使用ARDUINO_MPPT_FIRMWARE_V2.1
 
  **高端检测**  电压不要超过36V，否则可能损坏ina226
 
- **低端检测**  已验证，耐压没问题，不过输入端电流会包含esp32等用电设备，程序部分需要自行修改 2_Read_Sensors.ino ，将
+ **低端检测**  已验证，耐压没问题，不过输入端电流会包含esp32等内部耗电，程序部分需要自行修改 2_Read_Sensors.ino ，将
 
 `CSI_converted = ina1.readShuntCurrent();`
 
@@ -166,6 +166,10 @@ OTA webupdate
 20220904
 new UI
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720220904165534.jpg)
+
+20220924
+采用多点采样快速查找最大功率点
+修复wifi自动重连逻辑
 
 
 #### 参与贡献
