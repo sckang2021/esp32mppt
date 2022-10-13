@@ -1,5 +1,6 @@
 # ESP32 MPPT
-![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220909130222.jpg)
+![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221013161921.jpg)
+![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221013161915.jpg)
 
 #### 介绍
 基于esp32-wroom-32的MPPT同步整流充电系统
@@ -9,7 +10,6 @@
 PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平台 https://oshwhub.com/gggggg/esp32-1kw-mppt_copy
 
 本项目对应立创EDA工程文件：https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226
-
 
 
 
@@ -83,13 +83,19 @@ flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/su
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105704.png)
 
 
-4、脱离串口的OTA固件升级（请仔细检查固件对应的硬件版本进行升级，如果升级失败只能通过串口重新烧录）
+4、脱离串口的OTA固件升级，使用OTA对应的bin升级会保留设置数据，（请仔细检查固件对应的硬件版本进行升级，如果升级失败只能通过串口重新烧录）
 
 OTA必须配网完成才能使用，可以通过浏览器访问 [http://ESP32_MPPT.local](http://) 或访问对应的客户端IP
 
 OTA的账号：admin，密码：ESPmppt
 
+
+
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105714.png)
+
+
+5、深度休眠时间设置，默认为19点至5点间esp32进入超低功耗的深度休眠 20221013
+
 
 
 然后就可以愉快地使用了
@@ -170,6 +176,7 @@ new UI
 20220924
 采用多点采样快速查找最大功率点
 修复wifi自动重连逻辑
+
 
 
 #### 参与贡献
