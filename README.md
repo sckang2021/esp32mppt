@@ -10,7 +10,11 @@
 
 PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平台 https://oshwhub.com/gggggg/esp32-1kw-mppt_copy
 
-本项目对应立创EDA工程文件：https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226
+本项目立创EDA工程文件 Schematic PCB files
+
+HW5.0：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226](http://)
+
+HW6.01：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226_copy_copy_copy_copy_copy](http://)
 
 
 
