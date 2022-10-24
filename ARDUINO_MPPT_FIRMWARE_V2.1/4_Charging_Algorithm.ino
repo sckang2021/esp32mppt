@@ -58,7 +58,6 @@ void Charging_Algorithm(){
 		//psu模式和psu充电模式还是要区别一下，充电模式为了充电可以榨干输入源，psu模式则并不一定需要，所以暂时关闭此判断 20220811
         //if(currentOutput>PSUcurrentMax)       {PWM--;}                               //电流高于外部最大值 → 降低占空比
         else if(voltageOutput>voltageBatteryMax){PWM--;}                             //电压高于 → 降低占空比
-        else if(voltageInput<voltageInputMax-1){PWM--;} //当带载输入电压与空载电压相差1v，降低占空比20220806
         else if(voltageOutput<voltageBatteryMax){PWM++;}                             //当输出低于充电电压时增加占空比（仅用于 CC-CV 模式）
         else{}                                                                       //当达到设定的输出电压时什么都不做 
         PWM_Modulation();                                                            //将 PWM 信号设置为 Buck PWM GPIO
