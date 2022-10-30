@@ -51,7 +51,7 @@ HW6.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_b
 
 此版本提供bin直接烧录，如果是第一次烧写使用非OTA固件，之后升级可使用OTA固件写入0x10000位置或者直接web ota升级
 
-1、按图中打钩项选择，然后按boot+en进入download模式
+1、按图中打钩项选择，然后先按住boot，再按RESET，然后再全部松掉，进入download模式（可以通过串口助手看到进入烧录模式的提示）
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20220901155947.png)
 
