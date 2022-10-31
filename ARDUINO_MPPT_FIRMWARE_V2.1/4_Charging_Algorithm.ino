@@ -32,8 +32,8 @@ void Charging_Algorithm(){
     if(REC==1){                                                                      // IUV RECOVERY - (仅对充电模式有效)
       REC=0;                                                                         //重置 IUV 恢复布尔标识符
       buck_Disable();                                                                //在 PPWM 初始化之前禁用降压
-      lcd.setCursor(0,0);lcd.print("POWER SOURCE    ");                              //显示液晶信息
-      lcd.setCursor(0,1);lcd.print("DETECTED        ");                              //显示液晶信息
+      //lcd.setCursor(0,0);lcd.print("POWER SOURCE    ");                              //显示液晶信息
+      //lcd.setCursor(0,1);lcd.print("DETECTED        ");                              //显示液晶信息
       //tft.fillScreen(TFT_BLACK);
       //tft.drawString("POWER SOURCE DETECTED", 10, 40, 3);
       Serial.println("> Solar Panel Detected");                                      //显示串口信息
@@ -43,7 +43,7 @@ void Charging_Algorithm(){
       Read_Sensors();
       predictivePWM();
       PWM = PPWM;
-      lcd.clear();
+      //lcd.clear();
     }
     else{                                                                            //NO ERROR PRESENT - 继续电源转换
       /////////////////////// CC-CV BUCK PSU ALGORITHM ////////////////////////////// 
@@ -55,7 +55,7 @@ void Charging_Algorithm(){
         //if(PSUcurrentMax>=currentCharging || PSUcurrentMax==0.0000 || currentOutput<0.02){PSUcurrentMax = currentCharging;} //初始化psu输入最大电流
         
         if(currentOutput>currentCharging)     {PWM--;}                             //电流高于限定值 → 降低占空比
-		//psu模式和psu充电模式还是要区别一下，充电模式为了充电可以榨干输入源，psu模式则并不一定需要，所以暂时关闭此判断 20220811
+		    //psu模式和psu充电模式还是要区别一下，充电模式为了充电可以榨干输入源，psu模式则并不一定需要，所以暂时关闭此判断 20220811
         //if(currentOutput>PSUcurrentMax)       {PWM--;}                               //电流高于外部最大值 → 降低占空比
         else if(voltageOutput>voltageBatteryMax){PWM--;}                             //电压高于 → 降低占空比
         else if(voltageOutput<voltageBatteryMax){PWM++;}                             //当输出低于充电电压时增加占空比（仅用于 CC-CV 模式）
@@ -63,12 +63,12 @@ void Charging_Algorithm(){
         PWM_Modulation();                                                            //将 PWM 信号设置为 Buck PWM GPIO
         voltageInputPrev = voltageInput;                                             //	存储先前记录的电压
       }
-        ///////////////////////  MPPT & CC-CV 充电算法 ///////////////////////  mppt模式只要防止电压拉低到电池电压保护再进行重启的多余动作
+      ///////////////////////  MPPT & CC-CV 充电算法 ///////////////////////  mppt模式只要防止电压拉低到电池电压保护再进行重启的多余动作
       else{
         if(currentOutput>currentCharging){PWM--;}                                         //电流高于 → 降低占空比
         else if(voltageOutput>voltageBatteryMax){PWM--;}                                  //电压高于 → 降低占空比
         else{                                                                             //MPPT 算法
-          if( voltageInput>=(voltageBatteryMax+voltageDropout+1) && voltageInput>=(voltageOutput+voltageDropout+1)){  //输入大于电池最大电压设定及当前电池电压的条件下进行pwm处理，否则抬高电压，阻止过分拉低电压	20220803
+          if( currentOutput>0.1 && voltageInput>=(voltageOutput+voltageDropout+1)){       //无反向电流，输入大于电池电压的条件下进行pwm处理，阻止过分拉低电压	20220803
             if(powerInput>powerInputPrev && voltageInput>voltageInputPrev)     {PWM--;}   //  ↑P ↑V ; →MPP //D-- 	功率上升且电压上升，继续 抬高电压
             else if(powerInput>powerInputPrev && voltageInput<voltageInputPrev){PWM++;}   //  ↑P ↓V ; MPP← //D++	功率上升且电压降低，继续 拉低电压
             else if(powerInput<powerInputPrev && voltageInput>voltageInputPrev){PWM++;}   //  ↓P ↑V ; MPP→ //D++	功率下降，电压上升，尝试 拉低电压
@@ -78,6 +78,8 @@ void Charging_Algorithm(){
           }else{
             PWM--;
           }
+          
+          if(currentOutput<=0){PWM=PWM+2;}  //输出电流负值
           powerInputPrev   = powerInput;                                               //  存储以前记录的功率
           voltageInputPrev = voltageInput;                                             //	存储先前记录的电压
         }
