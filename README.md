@@ -252,7 +252,7 @@ buck模式在某些条件下无法限流问题
 
 Web界面数据信息
 
-通过浏览器访问 [http://ESP32_MPPT.local:88](http://ESP32_MPPT.local:88) 或访问对应的客户端IP http://客户端IP:88
+通过浏览器访问 http://ESP32_MPPT.local:88 或访问对应的客户端IP http://客户端IP:88
 
 
 修正
