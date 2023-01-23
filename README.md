@@ -1,4 +1,6 @@
 # ESP32 MPPT
+![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20230123175421.jpg)
+![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20230123175425.jpg)
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221013212635.jpg)
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20221013212929.jpg)
 
@@ -14,7 +16,7 @@ PCB工程修改自Gggggg的立创版本 esp32 mppt - 嘉立创EDA开源硬件平
 
 HW5.0：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226](https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226)
 
-HW6.01：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226_copy_copy_copy_copy_copy](https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226_copy_copy_copy_copy_copy)
+HW6.0：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226_copy_copy_copy_copy_copy](https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina226_copy_copy_copy_copy_copy)
 
 
 
@@ -41,26 +43,27 @@ HW5.01的程序使用ARDUINO_MPPT_FIRMWARE_V2.1
 
 HW6.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_buck_boost/bin/HW6
 
- **TFT屏幕：1.8寸TFT LCD SPI TFT彩屏st7735驱动128x160** 
+TFT屏幕：1.8寸TFT LCD SPI TFT彩屏st7735驱动128x160
 
-在降压版本的基础上，升压需要通过更换输入输出，外部开关来进行模式切换
+在降压版本的基础上，升压需要通过更换输入输出，外部开关来进行模式切换（ **6.11取消开关，改为菜单设置** ）
 
  **为了避免意外发生，请仔细检查接入及切换开关位置！！！** 
 
  **_使用时将主板上的升降压开关切换至降压模式，在对应的端子上接入输入电源，开机_** 
 
-此版本提供bin直接烧录，如果是第一次烧写使用非OTA固件，之后升级可使用OTA固件写入0x10000位置或者直接web ota升级
 
-1、按图中打钩项选择，然后先按住boot，再按RESET，然后再全部松掉，进入download模式（可以通过串口助手看到进入烧录模式的提示）
+此版本提供bin直接烧录，如果是第一次烧写使用非OTA固件，之后升级可使用OTA固件直接web升级
+
+ **1、** 按图中打钩项选择，然后先按住boot，再按RESET，然后再全部松掉，进入download模式（可以通过串口助手看到进入烧录模式的提示）
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20220901155947.png)
 
 flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/support/download/other-tools](https://www.espressif.com/zh-hans/support/download/other-tools) ），选择esp32进行烧写
 
 建议先烧录https://gitee.com/muyan3000/esp32-mppt/blob/master/esp32_buck_boost/bin/i2cdetect.bin，I2C检测程序，检查INA226的地址是否正确
-正常的TI INA226地址为0X40和0X41
+ **正常的TI INA226地址为0X40和0X41，有个别版本（替代）地址从0x44开始** 
 
-2、烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准
+ **2、** 烧写完成后，通过串口调试助手之类的串口工具，对输入输出电压进行查看校准，每次校准都会重启系统，以新参数运行
 
  **查看校准参数**  CHKVD
 
@@ -88,7 +91,7 @@ flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/su
 在串口发送界面输入：RNFB0.002
 
 
-3、配网及blinker设置
+ **3、** 配网及blinker设置
 
 第一次配置，通过设置界面，找到配网菜单，点击配网，会自动开启"ESP32_MPPT"的热点
 
@@ -101,39 +104,48 @@ flash_download_tool工具（下载地址：[https://www.espressif.com/zh-hans/su
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105704.png)
 
 
-4、脱离串口的OTA固件升级，使用OTA对应的bin升级会保留设置数据，（请仔细检查固件对应的硬件版本进行升级，如果升级失败只能通过串口重新烧录）
+ **4、** 脱离串口的OTA固件升级，使用OTA对应的bin升级会保留设置数据，（请仔细检查固件对应的硬件版本进行升级，如果升级失败只能通过串口重新烧录）
 
-OTA必须配网完成才能使用，可以通过浏览器访问 [http://ESP32_MPPT.local](http://) 或访问对应的客户端IP
+OTA功能必须配网完成才能使用，可以通过浏览器访问 [http://ESP32_MPPT.local](http://) 或访问对应的客户端IP
 
-OTA的账号：admin，密码：ESPmppt
+ **OTA的账号：admin，密码：ESPmppt** 
 
 
 
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720220909105714.png)
 
 
-5、深度休眠时间设置，默认为19点至5点间esp32进入超低功耗的深度休眠 20221013
+ **5、** 深度休眠时间设置：
 
+默认为19点至5点间esp32进入超低功耗的深度休眠 20221013
 
+如果设置了输出控制，则深度休眠失效，以输出控制设定为优先
 
-然后就可以愉快地使用了
+————————————————————————————————————————————————————————
 
-界面说明：
+ **主界面说明** ：
 充电模式/电源模式的外框绿色表示开启了mppt，红色为cccv
+
 buck/boost的外框绿色表示 pwm使能开启，红色为关闭
+
 输入信息的外框绿色表示输入防逆流关闭，红色表示防逆流开启
+
 wifi图标绿色表示wifi已连接，wifi图标下方为转换效率，右侧为电量百分比
+
 Fan图标紫色表示风扇未开启，开启后为绿色数字显示风扇转速比，风扇状态右侧为温度显示
+
 右下角为电压设置和电流设置，长按开启，开启后单击切换位数，双击切换电压或电流
+
 左下角绿色ok为正常运行，红色为错误状态信息
+
 最底下为当前开机输出电量
 
-界面2
-累计电量，开机时间，当前时间
 
-
+ **升压展示** 
 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220901143819.jpg)
+
+ **升压效率** 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220901115046.jpg)
 
 
@@ -146,13 +158,17 @@ Fan图标紫色表示风扇未开启，开启后为绿色数字显示风扇转�
 
 
 #### 安装教程
-修改ARDUINO_MPPT_FIRMWARE_V2.1.ino文件中的wifi配置信息及blinkerid
+5.0版本代码基于原作者代码修改了ina226的读取和部分算法优化，大部分参数设置都需要手动修改，如果有能力自行改进，则可使用此版本
 
-Liquid Crystal I2C LCD Library (By: Robojax) 这个库不能用
+以下为需要修改的部分
 
-用LiquidCrystal_I2C By:Frank de Brabander的版本
+修改ARDUINO_MPPT_FIRMWARE_V2.1.ino文件中的 **wifi配置信息及blinkerid** 
 
-INA226的库名是：INA226Lib
+ **Liquid Crystal I2C LCD Library (By: Robojax) 这个库不能用** 
+
+ **使用LiquidCrystal_I2C By:Frank de Brabander的版本** 
+
+INA226的库名是： **INA226Lib** 
 
 /*
 
@@ -168,16 +184,19 @@ INA226的库名是：INA226Lib
 
 */
 
+其他需要修改的参数请自行阅读代码
+
+
 #### 使用说明
 各版本looptime比较
 
-INA226版本
+ **INA226版本，开启串口信息输出的情况下运行耗时为6.2ms，关闭之后运行耗时在4.0ms** 
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220726114642.png)
 
-ads1015版本
+ads1015版本，运行耗时34ms左右
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220726120507.png)
 
-ads1115版本
+ads1115版本，运行耗时100ms左右
 ![输入图片说明](%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20220726114412.png)
 
 
