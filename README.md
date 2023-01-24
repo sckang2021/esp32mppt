@@ -316,6 +316,12 @@ FW:3.5.43
 
 #### 参与贡献
 
-高冧，熊喵，龙卷风，小一科技
+高冧 gggggg - 嘉立创EDA开源硬件平台 `https://oshwhub.com/gggggg`
 
+熊喵
 
+龙卷风
+
+小一科技 - 嘉立创EDA开源硬件平台 `https://oshwhub.com/adasdasdasd`
+
+启凡科创 - 嘉立创EDA开源硬件平台 `https://oshwhub.com/dhx233`
