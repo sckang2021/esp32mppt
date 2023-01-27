@@ -41,8 +41,6 @@ HW5.01的程序使用ARDUINO_MPPT_FIRMWARE_V2.1
 
  **【升压/降压同步整流版本HW6.01】** 
 
-HW6.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_buck_boost/bin/HW6
-
 TFT屏幕：1.8寸TFT LCD SPI TFT彩屏st7735驱动128x160
 
 在降压版本的基础上，升压需要通过更换输入输出，外部开关来进行模式切换（ **6.11取消开关，改为菜单设置** ）
@@ -51,6 +49,8 @@ TFT屏幕：1.8寸TFT LCD SPI TFT彩屏st7735驱动128x160
 
  **_使用时将主板上的升降压开关切换至降压模式，在对应的端子上接入输入电源，开机_** 
 
+
+HW6.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/esp32_buck_boost/firmware
 
 此版本提供bin直接烧录，如果是第一次烧写使用非OTA固件，之后升级可使用OTA固件直接web升级
 
