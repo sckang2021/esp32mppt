@@ -22,7 +22,7 @@ HW6.0：[https://oshwhub.com/muyan2020/wei-yan-zheng-esp32-guang-fu-pv-mppt-ina2
 
  **【降压同步整流版本HW5.01】** 
 
-HW5.01的程序使用ARDUINO_MPPT_FIRMWARE_V2.1
+HW5.01的程序使用 https://gitee.com/muyan3000/esp32-mppt/tree/master/ARDUINO_MPPT_FIRMWARE_V2.1
 
 本项目修改为2颗INA226方案，输入和输出的电压电流都能监测到
 
