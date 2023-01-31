@@ -322,7 +322,7 @@ V3.5.44 更正温度读取bug
 
 高冧 gggggg - 嘉立创EDA开源硬件平台 [https://oshwhub.com/gggggg](https://oshwhub.com/gggggg)
 
-熊喵
+熊喵 [https://oshwhub.com/tonnp](https://oshwhub.com/tonnp)
 
 龙卷风
 
