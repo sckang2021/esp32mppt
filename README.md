@@ -326,6 +326,8 @@ FW:3.5.50
 
 更新blinker ui 控制输出及模式切换
 
+https://gitee.com/muyan3000/esp32-mppt/blob/master/esp32_buck_boost/firmware/blinker_UI_3.5.50.txt
+
 blinker app界面的操作不会存储，重启之后会重置
 
 修正输出控制
