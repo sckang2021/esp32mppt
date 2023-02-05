@@ -337,6 +337,12 @@ blinker app界面的操作不会存储，重启之后会重置
 ![输入图片说明](QQ%E5%9B%BE%E7%89%8720230201201037.png)
 
 
+ **20230205** 
+FW:3.5.60
+修正INA226采样平均值修改过高问题导致采样值不准确
+
+
+
 #### 参与贡献
 
 高冧 gggggg - 嘉立创EDA开源硬件平台 [https://oshwhub.com/gggggg](https://oshwhub.com/gggggg)
