@@ -35,8 +35,4 @@ pcb：
 打印件可以通过三维猴打印，直接上传`3D打印和CNC模型-by虫二`文件夹内的stl即可，一共四个打印件（选择外壳cnc就用cnc的step）。不需要上传彩蛋，忽视壁厚小于0.8mm的警告，预计一套20-30。
 ![结构说明.png](image/assemble.png)
 
-## 代码烧录
-打开附件文件夹内的`bin/flash_download_tool_3.9.2.exe` 选择esp32s3，其他什么都不改（super_dial_v2.bin烧录到0x0位置）。然后通过usb-ttl连接到主控板，tx-rx rx-tx gnd -gnd，连接完成之后，按住boot按钮（sw1）然后接入typec亮起3.3v指示灯，然后松开boot按钮，点start开始烧录。烧录完成后拔掉typec 再次插入就可以看见效果
-
-USB烧录方法：打开附件文件夹内的`bin/flash_download_tool_3.9.2.exe` 选择esp32s3，loadmod改成USB其他什么都不改（super_dial_v2.bin烧录到0x0位置），先按住boot键，然后USB数据线连接。点start开始烧录。烧录完成后拔掉typec 再次插入就可以看见效果
 
