@@ -360,6 +360,31 @@ FW: V3.5.63
 
 增加点灯APP控制ESP32重启
 
+ **20230322** 
+
+FW: V3.5.64
+
+增加ESP32重启原因显示，可从串口获得及web页面显示
+
+ESP_RST_POWERON:   //上电复位
+
+ESP_RST_SW:        //软件复位
+
+ESP_RST_PANIC:     //系统崩溃
+
+ESP_RST_INT_WDT:   //内部看门狗复位
+
+ESP_RST_TASK_WDT:  //任务看门狗复位
+
+ESP_RST_WDT:       //硬件看门狗复位
+
+ESP_RST_DEEPSLEEP: //从深度睡眠唤醒
+
+ESP_RST_BROWNOUT:  //电源稳压器低电压复位
+
+ESP_RST_SDIO:      //SDIO 复位
+
+UNKNOWN            //未知
 
 
 #### 参与贡献
